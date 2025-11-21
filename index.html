@@ -51,7 +51,6 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center; 
-            /* Se mantiene min-height: 100vh para que el contenedor principal ocupe todo el espacio */
             min-height: 100vh; 
             width: 100%;
         }
@@ -60,14 +59,12 @@
             background-color: var(--color-card-bg); 
             max-width: 100%; 
             width: 100%;
-            height: 100vh; /* OCUPA EL 100% DE LA ALTURA EN MÓVIL Y PC */
+            height: 100vh; 
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Asegura que no haya márgenes raros */
+            /* Asegura que no haya márgenes raros en móvil */
             margin: 0; 
-            /* Para que ocupe toda la pantalla del PC, eliminamos los bordes */
-            border-radius: 0; 
         }
         
         #cuestionario {
@@ -82,10 +79,9 @@
         }
         
         /* ************************************** */
-        /* ADAPTACIÓN PARA ESCRITORIO (BLOQUE ELIMINADO PARA OCUPAR 100% DE PANTALLA) */
+        /* ADAPTACIÓN PARA ESCRITORIO (REMOVEMOS LAS RESTRICCIONES) */
         /* ************************************** */
-        /* Se ha eliminado el media query para que .contenedor-principal ocupe siempre el 100% */
-        /* (Se eliminó el bloque @media (min-width: 768px) {...}) */
+        /* Se eliminó la media query para que el chat siempre sea de pantalla completa (100% de alto y ancho) */
         
         /* ************************************** */
         /* LOGO y HEADER (Con Menú de Acciones) */
@@ -270,8 +266,6 @@
             overflow-y: auto;
             background-color: var(--color-card-bg); /* Fondo oscuro del chat */
             margin: 0;
-            /* Optimización del desplazamiento para móviles (especialmente iOS) */
-            -webkit-overflow-scrolling: touch; 
         }
         
         .chat-bot {
@@ -604,9 +598,9 @@
               "Puedes contactarnos al correo **jecasmar@uis.edu.co** o al celular **+57 322 7565651**.",
               "La información de contacto es: Correo electrónico jecasmar@uis.edu.co y celular +57 322 7565651."
             ],
-            "ubicacion": [
-              "Nuestra sede principal se encuentra en **Saravena, Arauca**.",
-              "Estamos ubicados en la sede central de la ciudad. ¡Ven a conocernos! 📍"
+            "ubicacion": [ 
+              "La sede principal de la UIS se encuentra en **Bucaramanga**, Santander. También contamos con sedes seccionales, incluyendo la de **Saravena**.",
+              "La UIS tiene su sede principal en Bucaramanga. Saravena es una de nuestras sedes seccionales."
             ],
             "historia_creacion": [
               "La Universidad Industrial de Santander (UIS) fue creada por medio de la **Ordenanza 38 de 1944** de la Asamblea Departamental de Santander, aunque empezó a funcionar oficialmente años después, con el objetivo de impulsar el desarrollo técnico e industrial de la región."
@@ -622,59 +616,84 @@
             "saludo": [
               "hola",
               "buenas",
-              "saludos"
+              "saludos",
+              "buenos dias", 
+              "buenas tardes", 
+              "que onda", 
+              "hey"
             ],
             // INTENCIÓN DE ESTADO REFORZADA (más específica)
             "como_estas": [
               "cómo estás",
-              "como estas", // sin tilde para la búsqueda
+              "como estas", 
               "como has estado",
               "que tal te va",
               "que tal",
-              "cómo te encuentras"
+              "cómo te encuentras",
+              "estado", 
+              "sientes"
             ],
             // INTENCIÓN DE FUNCIÓN
             "que_haces": [
               "que haces",
               "a que te dedicas",
               "cual es tu trabajo",
-              "que me puedes decir"
+              "que me puedes decir",
+              "para que sirves", 
+              "cuales son tus habilidades"
             ],
             "despedida": [
               "adiós",
               "chao",
               "hasta luego",
-              "me voy"
+              "me voy",
+              "nos vemos", 
+              "bye", 
+              "chau"
             ],
             "horario": [
               "horario",
               "hora",
               "abren",
               "cierran",
-              "atención"
+              "atención",
+              "a que hora", 
+              "disponibilidad", 
+              "tiempo de servicio"
             ],
             "carreras_oferta": [
               "carrera",
               "programa",
               "estudio",
               "que ofrecen",
-              "oferta académica"
+              "oferta académica",
+              "facultad", 
+              "cursos", 
+              "pregrado", 
+              "posgrado"
             ],
             "agradecimiento": [
               "gracias",
               "muchas gracias",
-              "te lo agradezco"
+              "te lo agradezco",
+              "mil gracias", 
+              "muy amable"
             ],
             "ayuda": [
               "ayuda",
               "necesito ayuda",
-              "soporte"
+              "soporte",
+              "asistencia", 
+              "auxilio", 
+              "colaborar"
             ],
             "identidad": [
               "quién eres",
               "como te llamas",
               "eres un bot",
-              "tu nombre"
+              "tu nombre",
+              "identidad", 
+              "eres humano"
             ],
             // *** PALABRAS CLAVE AMPLIADAS ***
             "quien_eres_detallado": [
@@ -707,27 +726,38 @@
               "llamar",
               "correo",
               "email",
-              "número"
+              "número",
+              "escribir", 
+              "comunicarme", 
+              "linea telefonica"
             ],
-            "ubicacion": [
+            "ubicacion": [ // <--- KEYWORDS AMPLIADAS
               "ubicación",
+              "ubicacion",
+              "ubicados",
               "donde están",
               "dirección",
               "sede",
-              "lugar"
+              "lugar",
+              "localidad", 
+              "localización", 
+              "donde queda"
             ],
              "historia_creacion": [
               "cuando se creó",
               "fundación",
               "fecha de creación",
               "origen uis",
-              "ordenanza 38"
+              "ordenanza 38",
+              "cuando fundaron", 
+              "historia"
             ],
              "historia_fundador": [
               "quien la fundó",
               "fundador",
               "quién creó",
-              "creador uis"
+              "creador uis",
+              "quien empezo"
             ],
             "mision_vision": [
               "misión",
@@ -735,7 +765,9 @@
               "visión",
               "vision",
               "propósito",
-              "objetivo de la uis"
+              "objetivo de la uis",
+              "metas", 
+              "filosofia"
             ]
           }
         };
@@ -752,9 +784,9 @@
                 titulo: "🎓 Oferta de Carreras UIS",
                 cuerpo: "Ofrecemos:<ul><li>**Ingeniería en Inteligencia Artificial**</li><li>**Zootecnia**</li><li>**Administración Agropecuaria**</li></ul><p style='text-align: center;'><a href='https://uis.edu.co/es/' target='_blank'>**Ver todos los programas en UIS.edu.co**</a></p>"
             },
-            "ubicacion": {
+            "ubicacion": { 
                 titulo: "📍 Ubicación de la Sede UIS",
-                cuerpo: "<p>Nuestra sede principal se encuentra en **Saravena, Arauca**.</p><p style='text-align: center;'><a href='https://maps.google.com/?cid=17075253050066749818&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNl' target='_blank'>**Ver Ubicación en Google Maps**</a></p>"
+                cuerpo: "<p>La sede principal de la Universidad Industrial de Santander (UIS) está en **Bucaramanga**, Santander. Contamos con sedes y extensiones, siendo **Saravena** una de nuestras sedes seccionales.</p><p style='text-align: center;'><a href='https://maps.google.com/?cid=17075253050066749818&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNl' target='_blank'>**Ver Ubicación de Sedes en el Mapa**</a></p>"
             },
             "contacto": {
                 titulo: "📞 Contacto Directo UIS",
@@ -912,6 +944,7 @@
         function actualizarSaludoInicial(nombre) {
             const initialGreeting = document.getElementById('initial-greeting');
             
+            // 🟢 CORRECCIÓN 3: ELIMINADOS LOS ** DEL TEXTO 🟢
             initialGreeting.innerHTML = `
                 <h4>¡Hola, ${nombre}! Soy tu Asistente UIS</h4>
                 <p>¡Me alegra saludarte! Soy el asistente virtual de la UIS y estoy aquí para resolver tus dudas. Puedes preguntar sobre la historia, carreras, o contacto.</p>
@@ -1018,42 +1051,6 @@
             historialChat.scrollTop = historialChat.scrollHeight;
         }
 
-        // FUNCIÓN DE FEEDBACK TEMPORAL (Reemplaza la función que usaba el botón flotante)
-        function mostrarFeedbackTemporal(mensaje, isError = false) {
-            const historialChat = document.getElementById('historialChat');
-            
-            // 1. Crear elemento temporal
-            const feedbackDiv = document.createElement('div');
-            feedbackDiv.textContent = mensaje;
-            feedbackDiv.style.cssText = `
-                position: sticky;
-                top: 0;
-                background-color: ${isError ? '#cc0000' : '#34a853'};
-                color: white;
-                padding: 8px;
-                text-align: center;
-                font-size: 0.9em;
-                z-index: 5;
-                margin-bottom: 10px;
-                border-radius: 4px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-            `;
-            
-            // 2. Insertarlo al inicio del historial de chat
-            historialChat.prepend(feedbackDiv);
-
-            // 3. Removerlo después de 5 segundos
-            setTimeout(() => {
-                feedbackDiv.remove();
-            }, 5000);
-        }
-
-        // FUNCIÓN ORIGINAL MOSTRAR ALERTA (MODIFICADA para no usar el botón flotante)
-        // Se ha renombrado y adaptado a la nueva función de feedback para no romper la lógica de Reseñas/CSV.
-        function mostrarAlerta(mensaje, esError=false) {
-            mostrarFeedbackTemporal(mensaje, esError);
-        }
-
         // FUNCIÓN CORREGIDA PARA LA RESEÑA: Cierra el menú y muestra el formulario explícitamente.
         function mostrarReseñaForm() {
             document.getElementById('opcionesFooter').style.display = 'none';
@@ -1067,6 +1064,30 @@
             document.getElementById('reseñaCliente').value = ''; 
         }
 
+        // Se modificó esta función para que solo muestre la alerta en el header (ya que el botón fue eliminado)
+        function mostrarAlerta(mensaje) {
+            const header = document.getElementById('contenedorMenu').querySelector('h2');
+            const alertElement = document.createElement('div');
+            alertElement.textContent = mensaje;
+            alertElement.style.position = 'absolute';
+            alertElement.style.top = '100%'; 
+            alertElement.style.left = '50%';
+            alertElement.style.transform = 'translateX(-50%)';
+            alertElement.style.padding = '5px 10px';
+            alertElement.style.backgroundColor = '#34a853';
+            alertElement.style.color = 'white';
+            alertElement.style.borderRadius = '5px';
+            alertElement.style.zIndex = '20';
+            alertElement.style.fontSize = '0.9em';
+
+            header.appendChild(alertElement);
+            
+            setTimeout(() => {
+                header.removeChild(alertElement);
+            }, 5000);
+        }
+
+
         function guardarReseña(event) {
             if (event && event.preventDefault) {
                 event.preventDefault(); 
@@ -1075,17 +1096,17 @@
             const reseña = document.getElementById('reseñaCliente').value.trim();
             
             if (reseña === "") {
-                mostrarAlerta("Tu reseña está vacía. Por favor, escribe un comentario.", true);
+                mostrarAlerta("Tu reseña está vacía. Por favor, escribe un comentario.");
                 return;
             }
             
             if (reseña.length < 5) { 
-                mostrarAlerta("La reseña debe tener al menos 5 caracteres.", true);
+                mostrarAlerta("La reseña debe tener al menos 5 caracteres.");
                 return;
             }
 
             if (typeof ultimoUsuario === 'undefined' || ultimoUsuario === null || !ultimoUsuario.nombre) { 
-                mostrarAlerta("Error: Usuario no registrado. Vuelve a iniciar sesión.", true); 
+                mostrarAlerta("Error: Usuario no registrado. Vuelve a iniciar sesión."); 
                 return; 
             }
             
@@ -1102,7 +1123,7 @@
                 localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
                 mostrarAlerta("✅ ¡Reseña enviada y guardada localmente! Gracias por tus comentarios.");
             } else {
-                mostrarAlerta("Error al guardar: Registro de usuario no encontrado en la lista global.", true);
+                mostrarAlerta("Error al guardar: Registro de usuario no encontrado en la lista global.");
                 return;
             }
 
@@ -1115,7 +1136,7 @@
             const datos = JSON.parse(localStorage.getItem('registrosUsuarios')) || [];
             
             if (datos.length === 0) {
-                mostrarAlerta("❌ No hay datos de usuarios registrados para exportar.", true);
+                mostrarAlerta("❌ No hay datos de usuarios registrados para exportar.");
                 return;
             }
 
