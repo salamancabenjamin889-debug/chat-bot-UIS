@@ -1063,7 +1063,44 @@
             document.body.removeChild(link);
             mostrarAlerta("✅ ¡Exportación exitosa!");
         }
+/**
+ * Maneja el envío del formulario de reseña.
+ * Netlify captura el campo 'texto_reseña' después de la llamada a submit.
+ */
+function guardarReseña(event) {
+    // 1. **PREVENIR ENVÍO DE FORMULARIO** (Netlify no lo captura si no tiene un action/submit manual)
+    event.preventDefault();
 
+    const form = event.target;
+    const reseñaTexto = document.getElementById('reseñaCliente').value.trim();
+
+    if (reseñaTexto.length < 10) {
+        alert("Por favor, escribe al menos 10 caracteres en tu reseña.");
+        return false;
+    }
+    
+    // 2. ENVIAR EL FORMULARIO MANUALMENTE A NETLIFY
+    // Esto asegura que Netlify procese los datos antes de mostrar el mensaje de éxito.
+    fetch(form.action, {
+        method: form.method,
+        body: new FormData(form)
+    })
+    .then(response => {
+        if (response.ok) {
+            // 3. Muestra mensaje de éxito y limpia
+            alert("¡Gracias! Tu reseña ha sido enviada con éxito.");
+            document.getElementById('reseñaCliente').value = ''; // Limpiar el campo
+            ocultarReseñaForm();
+        } else {
+            alert("Hubo un error al enviar la reseña. Inténtalo de nuevo.");
+        }
+    })
+    .catch(error => {
+        alert("Hubo un error de red al enviar la reseña: " + error);
+    });
+
+    return false; // Evita cualquier otra acción por defecto
+}
     </script>
 
 </body>
