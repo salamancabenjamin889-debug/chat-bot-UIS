@@ -1,0 +1,1040 @@
+Aquí tienes el código **completo** y **corregido** para que la interfaz se vea exactamente como en tu primera imagen (`Image 1`), incluyendo el tema oscuro, el diseño de la tarjeta central y el botón CSV flotante.
+
+He integrado todo el código HTML, CSS, y JavaScript. Solo recuerda **reemplazar las URLs de los logos** con las imágenes que estés usando.
+
+-----
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente de Información de la Universidad</title>
+    
+    <style>
+        /* ************************************* */
+        /* ********** ESTILOS BASE (DISEÑO ESPECÍFICO DE IMAGE 1) ************ */
+        /* ************************************* */
+
+        :root {
+            /* Colores según Image 1 */
+            --color-bg-body: #1A283B; /* Fondo de pantalla general oscuro (azul verdoso) */
+            --color-container-card: #2B3D51; /* Fondo de la tarjeta central del cuestionario */
+            --color-primary-green: #38A941; /* Verde para botones y textos importantes */
+            --color-text-light: #E0E0E0; /* Texto claro */
+            --color-input-bg: #3A4C62; /* Fondo de los inputs */
+            --color-input-border: #4A5B70; /* Borde de los inputs */
+            --color-border-dark: #3A4C62; /* Borde general y separadores */
+
+            /* Colores de Mensajes de Chat (cuando el chat está activo) */
+            --color-chat-header: #38A941; /* Verde de la cabecera del chat */
+            --color-chat-container: #2B3D51; /* Fondo del chat principal */
+            --color-user-message-bg: #007bff; /* Azul estándar para mensaje de usuario */
+            --color-bot-message-bg: #4A5C70; /* Fondo del mensaje del bot */
+            --color-bot-text: #E0E0E0;
+            --color-user-text: white;
+            
+            /* Colores para el "Initial Greeting" (El de fondo claro/verde pálido) */
+            --color-greeting-bg: #d0f0d0; /* Verde pálido/claro */
+            --color-greeting-text: #121212;
+            --color-greeting-title: #38A941;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--color-bg-body); /* Fondo de pantalla oscuro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--color-text-light);
+            transition: background-color 0.3s;
+            overflow: hidden; /* Para que el botón CSV no cree scroll */
+        }
+
+        /* ************************************* */
+        /* ********** CONTENEDOR PRINCIPAL DEL CHAT (después de iniciar) ***** */
+        /* ************************************* */
+        
+        .chat-container {
+            width: 90%;
+            max-width: 450px;
+            height: 80vh;
+            min-height: 500px;
+            background-color: var(--color-chat-container); /* Fondo del contenedor de chat */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--color-border-dark);
+            position: relative;
+        }
+
+        /* ************************************* */
+        /* ********** HEADER DEL CHAT ********** */
+        /* ************************************* */
+        
+        .chat-header {
+            background-color: var(--color-chat-header); /* Verde fuerte para header del chat */
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #34a853; /* Borde sutil del mismo color */
+        }
+        
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chat-header img {
+             height: 30px; 
+             width: auto;
+             filter: brightness(0) invert(1); /* Para que el logo se vea blanco en fondo verde */
+        }
+        
+        .controles-header {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn-control {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s, opacity 0.3s;
+            opacity: 0.8;
+            font-weight: 600;
+        }
+        
+        .btn-control:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+            opacity: 1;
+        }
+        
+        /* ************************************* */
+        /* ********** HISTORIAL DE CHAT ********* */
+        /* ************************************* */
+        
+        #historialChat {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: var(--color-chat-container); /* Mismo fondo que el contenedor */
+        }
+
+        /* Estilos de mensaje */
+        .chat-user, .chat-bot {
+            max-width: 85%;
+            padding: 12px 15px;
+            border-radius: 18px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-user {
+            align-self: flex-end;
+            background-color: var(--color-user-message-bg);
+            color: var(--color-user-text);
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bot {
+            align-self: flex-start;
+            background-color: var(--color-bot-message-bg); /* Fondo del mensaje del bot */
+            color: var(--color-bot-text);
+            border: 1px solid var(--color-border-dark);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-bot h4 {
+            color: var(--color-primary-green); /* Título del bot en verde */
+            margin: 0 0 5px 0;
+            font-size: 1em;
+            font-weight: 700;
+            border-bottom: 1px solid var(--color-border-dark);
+            padding-bottom: 3px;
+        }
+        
+        /* Saludo Inicial */
+        #initial-greeting {
+            background-color: var(--color-greeting-bg); /* Verde pálido/claro */
+            border-color: var(--color-primary-green);
+            color: var(--color-greeting-text);
+        }
+        
+        #initial-greeting h4 {
+            color: var(--color-greeting-title); /* Título del saludo en verde */
+        }
+
+        /* ************************************* */
+        /* ********** OPCIONES DE MENÚ ********* */
+        /* ************************************* */
+        
+        .menu-opciones {
+            padding: 15px 20px;
+            background-color: var(--color-chat-container);
+            border-top: 1px solid var(--color-border-dark);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .opcion-btn {
+            background-color: var(--color-primary-green); /* Botones en verde fuerte */
+            color: white;
+            border: 1px solid var(--color-primary-green);
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .opcion-btn:hover {
+            background-color: #2b8c34;
+        }
+        
+        .opcion-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* ************************************* */
+        /* ********** INPUT DE TEXTO *********** */
+        /* ************************************* */
+        
+        .chat-input {
+            padding: 10px 20px;
+            display: flex;
+            background-color: var(--color-chat-container); /* Fondo del input */
+            border-top: 1px solid var(--color-border-dark);
+        }
+
+        #inputMensaje {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid var(--color-input-border);
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 1em;
+            outline: none;
+            background-color: var(--color-input-bg); /* Color de input más oscuro */
+            color: var(--color-text-light);
+        }
+
+        #btnEnviar {
+            background-color: var(--color-primary-green);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        #btnEnviar:hover {
+            background-color: #2b8c34;
+        }
+
+        /* ************************************* */
+        /* ********** CUESTIONARIO INICIAL (DISEÑO IMAGE 1) ***** */
+        /* ************************************* */
+        
+        #cuestionario {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-bg-body); /* Fondo oscuro general */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0; 
+            text-align: center;
+            z-index: 10;
+        }
+
+        /* Tarjeta central del cuestionario */
+        .cuestionario-card {
+            background-color: var(--color-container-card); /* Fondo oscuro de la tarjeta */
+            border-radius: 12px;
+            padding: 30px 40px;
+            width: 90%;
+            max-width: 380px; /* Ancho máximo para parecerse a la imagen */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; /* Espacio entre elementos */
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--color-primary-green); /* Fondo verde del logo */
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            gap: 15px;
+            width: 90%; /* Ancho del contenedor del logo */
+        }
+
+        .logo-container p {
+            margin: 0;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            line-height: 1.2;
+            text-align: right; /* Alineación del texto "Universidad Industrial..." */
+        }
+
+        .logo-container img {
+            height: 60px; /* Tamaño del logo de la UIS */
+            width: auto;
+            filter: brightness(0) invert(1); /* Para que el logo se vea blanco */
+        }
+
+        #cuestionario h3 {
+            color: var(--color-primary-green);
+            margin-top: 0; 
+            margin-bottom: 5px;
+            font-size: 1.4em;
+        }
+
+        #cuestionario p {
+            color: var(--color-text-light);
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        #cuestionario input[type="text"], 
+        #cuestionario input[type="tel"] {
+            width: calc(100% - 20px); 
+            padding: 12px 10px;
+            margin: 0; 
+            border: 1px solid var(--color-input-border);
+            border-radius: 8px;
+            background-color: var(--color-input-bg);
+            color: var(--color-text-light);
+            font-size: 1em;
+        }
+
+        #cuestionario label {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+            color: var(--color-text-light);
+            margin-top: 10px; 
+            cursor: pointer;
+        }
+
+        #cuestionario input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--color-primary-green); 
+        }
+        
+        #cuestionario button {
+            background-color: var(--color-primary-green);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        #cuestionario button:hover {
+            background-color: #2b8c34;
+        }
+        
+        #alerta-inline {
+            background-color: #5c1a26;
+            color: #ffcccc;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 0.9em;
+            width: 90%;
+            max-width: 350px;
+        }
+        
+        /* ************************************* */
+        /* ********** BOTÓN CSV FLOTANTE (EN PANTALLA DE INICIO) ******* */
+        /* ************************************* */
+        #csvFloatingButton {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: var(--color-primary-green);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: background-color 0.3s, transform 0.2s;
+            z-index: 11; 
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #csvFloatingButton:hover {
+            background-color: #2b8c34;
+            transform: translateY(-2px);
+        }
+
+        /* ************************************* */
+        /* ********** RESEÑA FOOTER ************ */
+        /* ************************************* */
+        
+        #contenedorReseña {
+            background-color: var(--color-chat-container);
+            padding: 15px;
+            border-top: 1px solid var(--color-border-dark);
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #contenedorReseña textarea {
+            width: calc(100% - 20px);
+            height: 60px;
+            padding: 10px;
+            border: 1px solid var(--color-input-border);
+            border-radius: 8px;
+            resize: none;
+            background-color: var(--color-input-bg);
+            color: var(--color-text-light);
+        }
+
+        .acciones-reseña {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .acciones-reseña button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        #btnCancelarReseña {
+            background-color: #555;
+            color: white;
+        }
+
+        #btnGuardarReseña {
+            background-color: var(--color-primary-green);
+            color: white;
+        }
+        
+        #opcionesFooter {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: var(--color-chat-container);
+            border-top: 1px solid var(--color-border-dark);
+        }
+        
+        #opcionesFooter button {
+            background-color: var(--color-primary-green);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <button id="csvFloatingButton" onclick="descargarCSV()">CSV</button>
+
+    <div class="chat-container" id="contenedorMenu" style="display: none;">
+        
+        <div class="chat-header">
+            <h2>
+                <img src="[URL_DEL_LOGO_UIS_PEQUEÑO]" alt="Logo UIS"> 
+                Asistente UIS
+            </h2>
+            <div class="controles-header">
+                <button class="btn-control" id="exportarBtnChat" onclick="descargarCSV()">CSV</button>
+                <button class="btn-control" onclick="volverAlInicio()">Salir</button>
+            </div>
+        </div>
+
+        <div id="historialChat">
+            <div class="chat-bot" id="initial-greeting">
+                </div>
+        </div>
+        
+        <div class="menu-opciones">
+            <button class="opcion-btn" onclick="procesarSeleccion('historia_uis', 'Quiero saber la historia de la UIS')">📜 Historia</button>
+            <button class="opcion-btn" onclick="procesarSeleccion('carreras_ofertadas', '¿Qué carreras ofrece la UIS?')">🎓 Carreras</button>
+            <button class="opcion-btn" onclick="procesarSeleccion('proceso_admision', '¿Cómo es el proceso de admisión?')">✅ Admisión</button>
+            <button class="opcion-btn" onclick="procesarSeleccion('contacto_principal', 'Necesito el contacto de la sede principal')">☎️ Contacto</button>
+            <button class="opcion-btn" onclick="procesarSeleccion('becas_y_ayudas', 'Información sobre becas')">💰 Becas</button>
+            <button class="opcion-btn" onclick="procesarSeleccion('evaluar_servicio', 'Quiero evaluar el servicio')">⭐️ Evaluar</button>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="inputMensaje" placeholder="Escribe tu pregunta..." onkeypress="manejarEnter(event)">
+            <button id="btnEnviar" onclick="enviarMensaje()">➤</button>
+        </div>
+        
+        <div id="opcionesFooter">
+            <button onclick="limpiarChat(false)">🧹 Limpiar Chat</button>
+            <button onclick="mostrarReseñaForm()">⭐️ Dejar Reseña</button>
+        </div>
+
+        <div id="contenedorReseña">
+            <label for="reseñaCliente">Escribe tu reseña (máx. 200 caracteres):</label>
+            <textarea id="reseñaCliente" maxlength="200" placeholder="Ej: 'El asistente fue muy útil con la información de carreras'"></textarea>
+            <div class="acciones-reseña">
+                <button id="btnCancelarReseña" onclick="ocultarReseñaForm()">Cancelar</button>
+                <button id="btnGuardarReseña" onclick="guardarReseña()">Guardar Reseña</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cuestionario">
+        <div class="cuestionario-card">
+            <div id="alerta-inline" style="width: auto; max-width: 90%;"></div>
+            
+            <div class="logo-container">
+                <p>Universidad Industrial de Santander</p>
+                <img src="[URL_DEL_LOGO_UIS_GRANDE]" alt="Logo UIS"> 
+            </div>
+            
+            <h3>👋 Bienvenido al Asistente UIS</h3>
+            <p>Para acceder, por favor introduce tus datos:</p>
+            
+            <input type="text" id="nombreUsuario" placeholder="Escribe tu nombre aquí">
+            <input type="tel" id="correoUsuario" placeholder="Escribe tu número de teléfono (10 dígitos)">
+            
+            <label for="checkAutorizacion">
+                <input type="checkbox" id="checkAutorizacion">
+                Autorizo el tratamiento de mis datos personales de acuerdo con la política de privacidad de la UIS.
+            </label>
+            
+            <button onclick="iniciarMenu()">Iniciar Chat</button>
+        </div>
+    </div>
+
+    <script>
+        // *************************************
+        // ********** PARTE 1: ESTRUCTURAS DE DATOS ************
+        // *************************************
+
+        // Mapeo de información detallada (para las opciones del menú)
+        const infoMap = {
+            historia_uis: {
+                titulo: "📜 Historia de la UIS",
+                cuerpo: "La Universidad Industrial de Santander (UIS) fue fundada en 1948 en Bucaramanga. Nació con el propósito de formar ingenieros para apoyar la industrialización del país. Hoy en día, es reconocida como una de las instituciones públicas de educación superior más importantes de Colombia.",
+            },
+            carreras_ofertadas: {
+                titulo: "🎓 Carreras de Pregrado y Posgrado",
+                cuerpo: "La UIS ofrece una amplia gama de programas. En pregrado, destacan sus ingenierías (Industrial, Civil, Sistemas), Ciencias Humanas y de la Salud. En posgrado, cuenta con especializaciones, maestrías y doctorados enfocados en investigación y desarrollo.",
+            },
+            contacto_principal: {
+                titulo: "☎️ Contacto y Ubicación Principal",
+                cuerpo: "Puedes contactarnos en la Sede Principal ubicada en Bucaramanga, Santander. \n\nTeléfono: +57 (607) 6344000\nCorreo: buzon@uis.edu.co\nHorario de atención: Lunes a viernes, 8:00 a.m. a 12:00 p.m. y 2:00 p.m. a 6:00 p.m.",
+            },
+            proceso_admision: {
+                titulo: "✅ Proceso de Admisión",
+                cuerpo: "El proceso se realiza dos veces al año (para el primer y segundo semestre). Debes estar atento a la publicación de fechas en la web oficial. Generalmente incluye la inscripción en línea y la presentación de un examen de admisión que evalúa conocimientos en diversas áreas.",
+            },
+            becas_y_ayudas: {
+                titulo: "💰 Becas y Apoyos Financieros",
+                cuerpo: "La universidad ofrece diversos programas de apoyo financiero, incluyendo becas por rendimiento académico y ayudas socioeconómicas. El programa Generación E es uno de los más importantes para estudiantes de bajos recursos.",
+            },
+            biblioteca_servicios: {
+                titulo: "📚 Biblioteca y Recursos Digitales",
+                cuerpo: "La Biblioteca Central ofrece acceso a una gran colección de libros, revistas especializadas y recursos digitales. Como estudiante, tienes acceso a bases de datos internacionales para tu investigación.",
+            },
+            laboratorios_y_sedes: {
+                titulo: "🔬 Laboratorios e Instalaciones",
+                cuerpo: "Contamos con laboratorios de alta tecnología en todas las áreas de ingeniería y ciencias. La UIS tiene sedes alternas como la Sede Guatiguará (investigación) y la Sede Socorro.",
+            },
+            evaluar_servicio: {
+                titulo: "⭐️ Evaluación del Servicio",
+                cuerpo: "¡Gracias por tomarte el tiempo de evaluarme! Haz clic en el botón 'Dejar Reseña' para dejar tus comentarios. Tu opinión es muy valiosa para mejorar este asistente.",
+            },
+            despedida: {
+                titulo: "👋 ¡Hasta pronto!",
+                cuerpo: "Ha sido un placer asistirte. Recuerda que la información de la UIS está en constante actualización en la web oficial. ¡Que tengas un excelente día!",
+            }
+        };
+
+        const conversationalData = {
+            intents: {
+                default: [
+                    "Lo siento, no entendí tu pregunta. ¿Podrías reformularla o seleccionar una de las opciones del menú?",
+                    "¡Ups! Parece que no tengo esa información. Intenta con palabras clave como 'carreras', 'admisión' o 'contacto'.",
+                    "Mi conocimiento es limitado. Por favor, revisa las opciones principales en el menú para encontrar lo que buscas."
+                ],
+                saludo: [
+                    "¡Hola! Soy el Asistente Virtual UIS, ¿en qué puedo ayudarte hoy?",
+                    "¡Qué gusto saludarte! Pregunta sobre la UIS: 'carreras', 'admisión' o 'historia'.",
+                    "¡Un saludo! ¿Listo para descubrir más sobre la Universidad Industrial de Santander?"
+                ],
+                como_estas: [
+                    "Estoy muy bien, ¡listo para ayudarte! Soy un programa de código, pero me siento genial.",
+                    "Operando al 100%. ¿Qué información necesitas sobre la UIS?",
+                    "Perfecto. Mi único objetivo es asistirte con tus dudas sobre la UIS."
+                ],
+                quien_eres_detallado: [
+                    "Soy el Asistente Virtual UIS, tu guía para obtener información rápida sobre la universidad. ¡Pregúntame lo que necesites!",
+                    "Fui creado para responder preguntas frecuentes sobre la UIS, desde la historia hasta los procesos de admisión."
+                ],
+                que_puedes_hacer: [
+                    "Puedo darte información sobre: historia, carreras, contacto, admisiones y más. ¡Dime qué tema te interesa!",
+                    "Estoy programado para gestionar tus preguntas sobre la UIS y sus servicios. ¿Empezamos?"
+                ]
+            },
+            keywords: {
+                saludo: ["hola", "saludos", "buenos dias", "buenas tardes"],
+                como_estas: ["como estas", "que tal", "todo bien"],
+                quien_eres_detallado: ["quien eres", "eres humano", "tu nombre"],
+                que_puedes_hacer: ["que haces", "puedes hacer", "que sabes"],
+                
+                historia_uis: ["historia", "fundacion", "cuando nacio", "origen"],
+                carreras_ofertadas: ["carreras", "programas", "estudiar", "que ofrecen"],
+                contacto_principal: ["contacto", "telefono", "ubicacion", "correo", "direccion"],
+                proceso_admision: ["admision", "inscripciones", "como entrar", "examen", "ingreso"],
+                becas_y_ayudas: ["becas", "ayudas", "financieras", "descuentos", "creditos"],
+                biblioteca_servicios: ["biblioteca", "libros", "recursos", "digitales"],
+                laboratorios_y_sedes: ["laboratorios", "sedes", "instalaciones", "infraestructura", "guatiguara"],
+                evaluar_servicio: ["evaluar", "reseña", "comentarios", "opinar", "servicio", "gracias"],
+                despedida: ["adios", "chao", "hasta luego", "bye"]
+            }
+        };
+
+        // *************************************
+        // ********** LÓGICA CORE DEL CHATBOT ************
+        // *************************************
+
+        let ultimoUsuario = null; 
+        const registrosUsuarios = JSON.parse(localStorage.getItem('registrosUsuarios')) || [];
+        const CODIGO_SECRETO = "admin123";
+
+        function displayBotResponse(cuerpo, titulo, showOptions = true) {
+            
+            const historialChat = document.getElementById('historialChat');
+            const cuerpoFormateado = cuerpo.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            const botHtml = `
+                <div class="chat-bot">
+                    <h4>${titulo}</h4>
+                    <p>${cuerpoFormateado}</p>
+                    ${showOptions ? `
+                    <div class="acciones-post-respuesta" style="margin-top: 10px; padding-top: 5px; border-top: 1px dashed #4a5a6a; text-align: right;">
+                        <label style="font-size: 0.8em; font-weight: 400; color: #aaa; margin-right: 10px;">¿Algo más en lo que te pueda ayudar?</label>
+                        <button class="opcion-btn" onclick="animateButton(this); mostrarOpciones()" style="background-color: var(--color-primary-green); color: white; border: none;">Ver Opciones</button>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            historialChat.innerHTML += botHtml;
+            historialChat.scrollTop = historialChat.scrollHeight;
+        }
+        
+        function animateButton(button) {
+             button.style.transform = 'scale(0.95)';
+             setTimeout(() => {
+                 button.style.transform = 'scale(1)';
+             }, 100);
+        }
+
+        function buscarRespuesta(mensaje) {
+            
+            const mensajeMinusculas = mensaje.toLowerCase().trim();
+
+            for (const intent in conversationalData.keywords) {
+                
+                const keywords = conversationalData.keywords[intent];
+                
+                for (const keyword of keywords) {
+                    
+                    if (mensajeMinusculas.includes(keyword)) {
+
+                        if (intent in infoMap) {
+                            return { intent: intent, isDetailed: true };
+                        }
+
+                        if (conversationalData.intents[intent]) {
+                            const responses = conversationalData.intents[intent];
+                            const responseText = responses[Math.floor(Math.random() * responses.length)];
+                            return { intent: intent, response: responseText, isDetailed: false };
+                        }
+                    }
+                }
+            }
+
+            const defaultResponses = conversationalData.intents.default;
+            const defaultResponse = defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+            return { intent: "default", response: defaultResponse, isDetailed: false };
+        }
+
+        function enviarMensaje() {
+            
+            const inputElement = document.getElementById('inputMensaje');
+            const mensaje = inputElement.value.trim();
+            inputElement.value = '';
+
+            if (mensaje === "") return;
+
+            const historialChat = document.getElementById('historialChat');
+            
+            const userHtml = `<div class="chat-user">${mensaje}</div>`;
+            historialChat.innerHTML += userHtml;
+            historialChat.scrollTop = historialChat.scrollHeight;
+
+            const resultado = buscarRespuesta(mensaje);
+
+            if (resultado.isDetailed) {
+                procesarRespuestaBot(resultado.intent);
+            } else {
+                
+                let titulo = "Asistente UIS";
+                
+                if (resultado.intent === "default") {
+                    titulo = "🤔 No estoy seguro de esa pregunta...";
+                } else if (resultado.intent === 'quien_eres_detallado' || resultado.intent === 'que_puedes_hacer') {
+                     titulo = "Información del Asistente";
+                } else if (resultado.intent === 'como_estas' || resultado.intent === 'saludo') {
+                     titulo = "Saludos del Asistente";
+                }
+                
+                displayBotResponse(resultado.response, titulo, true);
+            }
+        }
+
+        function procesarRespuestaBot(optionValue) {
+            
+            let titulo = "Asistente UIS";
+            let cuerpo = "";
+            let mostrarOpcionesBoton = true;
+
+            if (optionValue in infoMap) {
+                const info = infoMap[optionValue];
+                titulo = info.titulo;
+                cuerpo = info.cuerpo; 
+                mostrarOpcionesBoton = true;
+            } else {
+                if (optionValue in conversationalData.intents) {
+                     titulo = (optionValue === 'faq_general' || optionValue === 'quien_eres_detallado' || optionValue === 'que_puedes_hacer') ? "Información del Asistente" :
+                              (optionValue === 'como_estas' || optionValue === 'saludo') ? "Saludos del Asistente" : "Información UIS";
+                     const responses = conversationalData.intents[optionValue];
+                     cuerpo = responses[Math.floor(Math.random() * responses.length)];
+                     mostrarOpcionesBoton = true;
+                } else {
+                    const defaultResponses = conversationalData.intents.default;
+                    titulo = "🤔 ¡Vaya! Esa pregunta me superó...";
+                    cuerpo = defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+                    mostrarOpcionesBoton = false;
+                }
+            }
+
+            displayBotResponse(cuerpo, titulo, mostrarOpcionesBoton);
+        }
+
+        function procesarSeleccion(optionValue, optionText) {
+
+            const historialChat = document.getElementById('historialChat');
+
+            const userHtml = `<div class="chat-user">${optionText}</div>`;
+            historialChat.innerHTML += userHtml;
+            historialChat.scrollTop = historialChat.scrollHeight;
+
+            procesarRespuestaBot(optionValue);
+        }
+
+        // *************************************
+        // ********** FUNCIONES DE INTERFAZ Y ESTADO ************
+        // *************************************
+
+        function manejarEnter(event) {
+            if (event.key === 'Enter') {
+                document.getElementById('btnEnviar').click();
+                return false;
+            }
+            return true;
+        }
+
+        function actualizarSaludoInicial(nombre) {
+            
+            const initialGreeting = document.getElementById('initial-greeting');
+
+            initialGreeting.innerHTML = `
+                <h4>¡Hola, ${nombre}! Soy tu Asistente UIS</h4>
+                <p>¡Me alegra saludarte! Soy el asistente virtual de la UIS y estoy aquí para resolver tus dudas. Puedes preguntar sobre la **historia**, **carreras**, o **contacto**.</p>
+            `;
+        }
+
+        function iniciarMenu() {
+            
+            const nombre = document.getElementById('nombreUsuario').value.trim();
+            const telefono = document.getElementById('correoUsuario').value.trim(); 
+            const autorizado = document.getElementById('checkAutorizacion').checked;
+
+            if (nombre === "") {
+                mostrarAlertaInline("❌ Por favor, introduce tu nombre.");
+                return;
+            }
+
+            if (telefono === "" || !/^\d{10}$/.test(telefono)) {
+                mostrarAlertaInline("❌ Por favor, introduce tu número de teléfono (debe tener exactamente 10 dígitos numéricos).");
+                return;
+            }
+
+            if (!autorizado) {
+                 mostrarAlertaInline("❌ Debes autorizar el tratamiento de datos para iniciar el chat.");
+                 return;
+            }
+
+            const nuevoRegistro = {
+                nombre: nombre,
+                telefono: telefono,
+                reseña: ""
+            };
+
+            // Verificar si el usuario ya existe para evitar duplicados en la lista (si solo se usa para guardar la reseña)
+            let index = registrosUsuarios.findIndex(r => r.nombre === nombre && r.telefono === telefono);
+            if (index === -1) {
+                registrosUsuarios.push(nuevoRegistro);
+                localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
+                index = registrosUsuarios.length - 1;
+            }
+            
+            ultimoUsuario = registrosUsuarios[index];
+
+            document.getElementById('cuestionario').style.display = 'none';
+            document.getElementById('contenedorMenu').style.display = 'flex';
+            document.getElementById('csvFloatingButton').style.display = 'none'; // Ocultar el botón flotante
+            document.getElementById('exportarBtnChat').style.display = 'block'; // Mostrar el botón en el header del chat
+
+            actualizarSaludoInicial(nombre);
+
+            document.getElementById('historialChat').scrollTop = document.getElementById('historialChat').scrollHeight;
+        }
+
+        function volverAlInicio() {
+            
+            document.getElementById('contenedorMenu').style.display = 'none';
+            document.getElementById('cuestionario').style.display = 'flex';
+            document.getElementById('csvFloatingButton').style.display = 'flex'; // Mostrar el botón flotante
+            document.getElementById('exportarBtnChat').style.display = 'none'; // Ocultar el botón en el header
+            limpiarChat(true);
+            ocultarReseñaForm();
+            // Limpiar los inputs del formulario al volver al inicio
+            document.getElementById('nombreUsuario').value = '';
+            document.getElementById('correoUsuario').value = '';
+            document.getElementById('checkAutorizacion').checked = false;
+            document.getElementById('alerta-inline').style.display = 'none';
+        }
+
+        function limpiarChat(isFullReset = false) {
+            
+            const historialChat = document.getElementById('historialChat');
+
+            if (isFullReset) {
+                 historialChat.innerHTML = `<div class="chat-bot" id="initial-greeting"></div>`;
+                 if (ultimoUsuario && ultimoUsuario.nombre) {
+                     actualizarSaludoInicial(ultimoUsuario.nombre);
+                 } else {
+                     actualizarSaludoInicial("Invitado");
+                 }
+            } else {
+                historialChat.innerHTML = document.getElementById('initial-greeting').outerHTML;
+                const alertHtml = `
+                    <div class="chat-bot" style="align-self: flex-start; background-color: var(--color-bot-message-bg); color: var(--color-text-light);">
+                        <h4>🧹 Chat Limpio</h4>
+                        <p>El historial de la conversación actual ha **limpiado** con éxito.</p>
+                    </div>
+                `;
+                 historialChat.innerHTML += alertHtml.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            }
+
+            historialChat.scrollTop = historialChat.scrollHeight;
+        }
+
+        function mostrarAlertaInline(mensaje, esError = true) {
+            
+            const alerta = document.getElementById('alerta-inline');
+            
+            if (document.getElementById('cuestionario').style.display !== 'none') {
+                alerta.textContent = mensaje;
+                alerta.style.display = 'block';
+                alerta.style.backgroundColor = esError ? '#5c1a26' : '#2b4f34'; 
+                alerta.style.color = esError ? '#ffcccc' : '#b2ffb2';
+            }
+        }
+
+        function mostrarOpciones() {
+            
+            const historialChat = document.getElementById('historialChat');
+
+            const botHtml = `
+                <div class="chat-bot">
+                    <h4>Asistente UIS</h4>
+                    <p>¡Claro que sí! Mira las opciones de comando justo abajo. Siempre puedes escribir tu pregunta también. 👇</p>
+                </div>
+            `;
+            historialChat.innerHTML += botHtml;
+            historialChat.scrollTop = historialChat.scrollHeight;
+        }
+
+        function mostrarReseñaForm() {
+            
+            document.getElementById('opcionesFooter').style.display = 'none';
+            document.getElementById('contenedorReseña').style.display = 'flex';
+        }
+
+        function ocultarReseñaForm() {
+            
+            document.getElementById('contenedorReseña').style.display = 'none';
+            document.getElementById('opcionesFooter').style.display = 'flex';
+            document.getElementById('reseñaCliente').value = '';
+        }
+
+        function mostrarAlerta(mensaje) {
+            // Usa el botón CSV del header (si estamos en el chat) o el flotante (si estamos en el login)
+            const isChatMode = document.getElementById('contenedorMenu').style.display !== 'none';
+            const alertaBtn = isChatMode ? document.getElementById('exportarBtnChat') : document.getElementById('csvFloatingButton');
+
+            alertaBtn.textContent = mensaje;
+            alertaBtn.style.opacity = 1;
+            alertaBtn.style.backgroundColor = '#4CAF50';
+              
+              setTimeout(() => {
+                 alertaBtn.style.opacity = isChatMode ? 0.8 : 1; 
+                 alertaBtn.style.backgroundColor = isChatMode ? 'rgba(255, 255, 255, 0.2)' : 'var(--color-primary-green)';
+                 alertaBtn.textContent = 'CSV';
+              }, 5000);
+        }
+
+        function guardarReseña() {
+            
+            const reseña = document.getElementById('reseñaCliente').value.trim();
+            
+            if (reseña === "") {
+                mostrarAlerta("Tu reseña está vacía. Por favor, escribe un comentario.");
+                return;
+            }
+
+            if (!ultimoUsuario) {
+                mostrarAlerta("Error: Usuario no registrado. Vuelve a iniciar sesión.");
+                return;
+            }
+
+            let reseñaLimpia = reseña.replace(/,/g, ";").replace(/\n/g, " ");
+            
+            // 1. Actualiza el objeto de sesión activo
+            ultimoUsuario.reseña = reseñaLimpia;
+
+            // 2. Encuentra y actualiza el registro en el array persistente 
+            const index = registrosUsuarios.findIndex(r => r.nombre === ultimoUsuario.nombre && r.telefono === ultimoUsuario.telefono);
+            
+            if (index !== -1) {
+                registrosUsuarios[index].reseña = reseñaLimpia;
+                localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
+            } else {
+                 mostrarAlerta("Error al guardar: Registro no encontrado en la lista global.");
+                 return;
+            }
+
+            ocultarReseñaForm();
+            mostrarAlerta("✅ ¡Reseña enviada! Gracias por tus comentarios.");
+        }
+
+        function descargarCSV() {
+            
+            const password = prompt("Introduce el código secreto para descargar la lista:");
+            
+            if (password !== CODIGO_SECRETO) {
+                 mostrarAlerta("❌ Código incorrecto. Intenta de nuevo.");
+                 return;
+            }
+
+            if (registrosUsuarios.length === 0) { mostrarAlerta("No hay datos para exportar."); return; }
+
+            const encabezado = "Nombre_Usuario,Numero_Telefono,Reseña\n";
+            let filasCSV = "";
+
+            registrosUsuarios.forEach(registro => {
+                
+                const nombre = registro.nombre || "";
+                const telefono = registro.telefono || "";
+                const reseña = registro.reseña ? registro.reseña.replace(/"/g, '""').replace(/\n/g, ' ') : "Sin reseña";
+
+                filasCSV += `"${nombre}","${telefono}","${reseña}"\n`;
+            });
+
+            const blob = new Blob([encabezado + filasCSV], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'datos_usuarios_y_reseñas.csv');
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            mostrarAlerta("✅ ¡Exportación exitosa!");
+        }
+
+        // Configuración inicial al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+             // Ocultar el botón CSV del chat al inicio (solo debe verse el flotante)
+             if (document.getElementById('exportarBtnChat')) {
+                 document.getElementById('exportarBtnChat').style.display = 'none';
+             }
+        });
+
+    </script>
+</body>
+</html>
+```
