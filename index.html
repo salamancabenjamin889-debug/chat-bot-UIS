@@ -85,6 +85,7 @@
         /* ADAPTACIÓN PARA ESCRITORIO (BLOQUE ELIMINADO PARA OCUPAR 100% DE PANTALLA) */
         /* ************************************** */
         /* Se ha eliminado el media query para que .contenedor-principal ocupe siempre el 100% */
+        /* (Se eliminó el bloque @media (min-width: 768px) {...}) */
         
         /* ************************************** */
         /* LOGO y HEADER (Con Menú de Acciones) */
@@ -1017,11 +1018,11 @@
             historialChat.scrollTop = historialChat.scrollHeight;
         }
 
-        // FUNCIÓN DE FEEDBACK TEMPORAL PARA REEMPLAZAR EL BOTÓN FLOTANTE
+        // FUNCIÓN DE FEEDBACK TEMPORAL (Reemplaza la función que usaba el botón flotante)
         function mostrarFeedbackTemporal(mensaje, isError = false) {
             const historialChat = document.getElementById('historialChat');
             
-            // 1. Create temporary div
+            // 1. Crear elemento temporal
             const feedbackDiv = document.createElement('div');
             feedbackDiv.textContent = mensaje;
             feedbackDiv.style.cssText = `
@@ -1038,13 +1039,19 @@
                 box-shadow: 0 2px 4px rgba(0,0,0,0.4);
             `;
             
-            // 2. Insert it before the first message
+            // 2. Insertarlo al inicio del historial de chat
             historialChat.prepend(feedbackDiv);
 
-            // 3. Remove it after 5 seconds
+            // 3. Removerlo después de 5 segundos
             setTimeout(() => {
                 feedbackDiv.remove();
             }, 5000);
+        }
+
+        // FUNCIÓN ORIGINAL MOSTRAR ALERTA (MODIFICADA para no usar el botón flotante)
+        // Se ha renombrado y adaptado a la nueva función de feedback para no romper la lógica de Reseñas/CSV.
+        function mostrarAlerta(mensaje, esError=false) {
+            mostrarFeedbackTemporal(mensaje, esError);
         }
 
         // FUNCIÓN CORREGIDA PARA LA RESEÑA: Cierra el menú y muestra el formulario explícitamente.
@@ -1068,17 +1075,17 @@
             const reseña = document.getElementById('reseñaCliente').value.trim();
             
             if (reseña === "") {
-                mostrarFeedbackTemporal("Tu reseña está vacía. Por favor, escribe un comentario.", true);
+                mostrarAlerta("Tu reseña está vacía. Por favor, escribe un comentario.", true);
                 return;
             }
             
             if (reseña.length < 5) { 
-                mostrarFeedbackTemporal("La reseña debe tener al menos 5 caracteres.", true);
+                mostrarAlerta("La reseña debe tener al menos 5 caracteres.", true);
                 return;
             }
 
             if (typeof ultimoUsuario === 'undefined' || ultimoUsuario === null || !ultimoUsuario.nombre) { 
-                mostrarFeedbackTemporal("Error: Usuario no registrado. Vuelve a iniciar sesión.", true); 
+                mostrarAlerta("Error: Usuario no registrado. Vuelve a iniciar sesión.", true); 
                 return; 
             }
             
@@ -1093,9 +1100,9 @@
                 
                 // 3. Guarda el array actualizado en localStorage
                 localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
-                mostrarFeedbackTemporal("✅ ¡Reseña enviada y guardada localmente! Gracias por tus comentarios.");
+                mostrarAlerta("✅ ¡Reseña enviada y guardada localmente! Gracias por tus comentarios.");
             } else {
-                mostrarFeedbackTemporal("Error al guardar: Registro de usuario no encontrado en la lista global.", true);
+                mostrarAlerta("Error al guardar: Registro de usuario no encontrado en la lista global.", true);
                 return;
             }
 
@@ -1108,7 +1115,7 @@
             const datos = JSON.parse(localStorage.getItem('registrosUsuarios')) || [];
             
             if (datos.length === 0) {
-                mostrarFeedbackTemporal("❌ No hay datos de usuarios registrados para exportar.", true);
+                mostrarAlerta("❌ No hay datos de usuarios registrados para exportar.", true);
                 return;
             }
 
@@ -1135,7 +1142,7 @@
             link.click();
             document.body.removeChild(link);
             
-            mostrarFeedbackTemporal("✅ ¡Datos CSV exportados exitosamente!");
+            mostrarAlerta("✅ ¡Datos CSV exportados exitosamente!");
         }
 
     </script>
