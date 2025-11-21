@@ -437,8 +437,9 @@
                     </button>
                     
                     <div id="controlesSuperiores">
-                        <button type="button" class="btn-accion-secundaria" onclick="mostrarReseñaForm(); toggleAccionesMenu()">⭐ Dejar Reseña</button>
-                        <button type="button" class="btn-accion-secundaria cerrar-sesion" onclick="volverAlInicio(); toggleAccionesMenu()">🚪 Cerrar Sesión</button>
+                        <button type="button" class="btn-accion-secundaria" onclick="ejecutarAccionMenu('reseña')">⭐ Dejar Reseña</button>
+                        <button type="button" class="btn-accion-secundaria" onclick="ejecutarAccionMenu('csv')">💾 Exportar CSV</button>
+                        <button type="button" class="btn-accion-secundaria cerrar-sesion" onclick="ejecutarAccionMenu('cerrar')">🚪 Cerrar Sesión</button>
                     </div>
                 </div>
             </h2>
@@ -472,7 +473,7 @@
                 <textarea id="reseñaCliente" placeholder="Nos ayuda a mejorar..."></textarea>
                 <div style="display: flex; justify-content: space-between; margin-top: 10px;">
                     <button type="button" class="opcion-btn" onclick="animateButton(this); ocultarReseñaForm()">Cancelar</button>
-                    <button class="primary-btn" onclick="animateButton(this); guardarReseña()" style="margin-top: 0; width: 70%; background-color: var(--color-uis-green);">Enviar Reseña</button>
+                    <button class="primary-btn" type="button" onclick="animateButton(this); guardarReseña()" style="margin-top: 0; width: 70%; background-color: var(--color-uis-green);">Enviar Reseña</button>
                 </div>
             </div>
 
@@ -480,7 +481,7 @@
         
     </div> 
     
-    <button id="exportarBtn" class="primary-btn" onclick="descargarCSV()" style="position: fixed; bottom: 10px; left: 10px; opacity: 0.2; margin: 0;">CSV</button>
+    <button id="exportarBtn" class="primary-btn" style="position: fixed; bottom: 10px; left: 10px; opacity: 0; margin: 0; pointer-events: none; transition: opacity 0.3s;">Notificación</button>
 
     <script>
 
@@ -498,11 +499,19 @@
         function toggleAccionesMenu() {
             const menu = document.getElementById('controlesSuperiores');
             menu.classList.toggle('active');
-            
-            // Si el menú se cierra y la reseña estaba visible, la ocultamos
-            if (!menu.classList.contains('active') && document.getElementById('contenedorReseña').style.display === 'block') {
-                 ocultarReseñaForm();
+        }
+        
+        // Función para ejecutar las acciones del menú de forma segura
+        function ejecutarAccionMenu(action) {
+            if (action === 'reseña') {
+                mostrarReseñaForm();
+            } else if (action === 'cerrar') {
+                volverAlInicio();
+            } else if (action === 'csv') {
+                descargarCSV(); // Llama a la nueva función de exportación
             }
+            // Cierra el menú de acciones DESPUÉS de ejecutar la acción
+            document.getElementById('controlesSuperiores').classList.remove('active');
         }
         
         // *************************************
@@ -910,16 +919,20 @@
                  return;
             }
             
-            const nuevoRegistro = {
-                nombre: nombre,
-                telefono: telefono, 
-                reseña: ""
-            };
-
-            registrosUsuarios.push(nuevoRegistro);
-            localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
+            // Buscar si el usuario ya existe para evitar duplicados en el registro (mantiene la reseña anterior)
+            let registroExistente = registrosUsuarios.find(r => r.nombre === nombre && r.telefono === telefono);
             
-            ultimoUsuario = nuevoRegistro; 
+            if (!registroExistente) {
+                registroExistente = {
+                    nombre: nombre,
+                    telefono: telefono, 
+                    reseña: ""
+                };
+                registrosUsuarios.push(registroExistente);
+                localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
+            }
+
+            ultimoUsuario = registroExistente; 
             
             document.getElementById('cuestionario').style.display = 'none';
             document.getElementById('contenedorMenu').style.display = 'flex'; 
@@ -990,118 +1003,105 @@
             document.getElementById('reseñaCliente').value = ''; 
         }
 
-        function mostrarAlerta(mensaje) {
-            const alertaCSV = document.getElementById('exportarBtn');
-            alertaCSV.textContent = mensaje;
-            alertaCSV.style.opacity = 1;
-            alertaCSV.style.backgroundColor = '#34a853'; 
-             setTimeout(() => {
-                alertaCSV.style.opacity = 0.2;
-                alertaCSV.textContent = 'CSV';
+        // Nueva función de alerta temporal (reemplaza la funcionalidad del botón CSV flotante)
+        function mostrarAlerta(mensaje, esError = false) {
+            const alerta = document.getElementById('exportarBtn');
+            alerta.textContent = mensaje;
+            alerta.style.opacity = 1;
+            alerta.style.backgroundColor = esError ? '#cc4444' : '#34a853'; 
+            alerta.style.pointerEvents = 'auto'; // Permitir que se muestre sobre otros elementos
+             
+            setTimeout(() => {
+                alerta.style.opacity = 0;
+                alerta.style.pointerEvents = 'none';
             }, 5000);
         }
 
-        function guardarReseña() {
-            const reseña = document.getElementById('reseñaCliente').value.trim();
-            if (reseña === "") {
-                mostrarAlerta("Tu reseña está vacía. Por favor, escribe un comentario.");
-                return;
-            }
-            
-            if (!ultimoUsuario) { 
-                mostrarAlerta("Error: Usuario no registrado. Vuelve a iniciar sesión."); 
-                return; 
-            }
-            
-            // 1. Limpia y asigna la reseña al objeto de sesión activo
-            let reseñaLimpia = reseña.replace(/,/g, ";").replace(/\n/g, " ");
-            ultimoUsuario.reseña = reseñaLimpia;
-            
-            // 2. Encuentra y actualiza el registro en el array persistente (para que la reseña se guarde)
-            // Se usa el nombre y el teléfono para encontrar el registro
-            const index = registrosUsuarios.findIndex(r => r.nombre === ultimoUsuario.nombre && r.telefono === ultimoUsuario.telefono);
-            if (index !== -1) {
-                registrosUsuarios[index].reseña = reseñaLimpia;
-                localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
-            } else {
-                 mostrarAlerta("Error al guardar: Registro no encontrado en la lista global.");
-                 return;
-            }
+    function guardarReseña(event) {
+    // 🛑 IMPORTANTE: Evita la recarga de la página si es llamada desde un formulario
+    if (event && event.preventDefault) {
+        event.preventDefault(); 
+    }
 
-            ocultarReseñaForm();
-            mostrarAlerta("✅ ¡Reseña enviada! Gracias por tus comentarios."); 
-        }
-
-        function descargarCSV() {
-            const password = prompt("Introduce el código secreto para descargar la lista:");
-            if (password !== CODIGO_SECRETO) {
-                 mostrarAlerta("❌ Código incorrecto. Intenta de nuevo.");
-                 return;
-            }
-            
-            if (registrosUsuarios.length === 0) { mostrarAlerta("No hay datos para exportar."); return; }
-            
-            // Encabezado del CSV
-            const encabezado = "Nombre_Usuario,Numero_Telefono,Reseña\n";
-            let filasCSV = "";
-            
-            registrosUsuarios.forEach(registro => {
-                const nombre = registro.nombre || "";
-                const telefono = registro.telefono || ""; 
-                // Escapa comillas dentro del texto de la reseña, reemplaza saltos de línea y usa comillas en el campo CSV
-                const reseña = registro.reseña ? registro.reseña.replace(/"/g, '""').replace(/\n/g, ' ') : "Sin reseña"; 
-                
-                filasCSV += `"${nombre}","${telefono}","${reseña}"\n`; 
-            });
-            
-            const blob = new Blob([encabezado + filasCSV], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute('download', 'datos_usuarios_y_reseñas.csv');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            mostrarAlerta("✅ ¡Exportación exitosa!");
-        }
-/**
- * Maneja el envío del formulario de reseña.
- * Netlify captura el campo 'texto_reseña' después de la llamada a submit.
- */
-function guardarReseña(event) {
-    // 1. **PREVENIR ENVÍO DE FORMULARIO** (Netlify no lo captura si no tiene un action/submit manual)
-    event.preventDefault();
-
-    const form = event.target;
-    const reseñaTexto = document.getElementById('reseñaCliente').value.trim();
-
-    if (reseñaTexto.length < 10) {
-        alert("Por favor, escribe al menos 10 caracteres en tu reseña.");
-        return false;
+    const reseña = document.getElementById('reseñaCliente').value.trim();
+    
+    // Validaciones
+    if (reseña === "") {
+        mostrarAlerta("Tu reseña está vacía. Por favor, escribe un comentario.", true);
+        return;
     }
     
-    // 2. ENVIAR EL FORMULARIO MANUALMENTE A NETLIFY
-    // Esto asegura que Netlify procese los datos antes de mostrar el mensaje de éxito.
-    fetch(form.action, {
-        method: form.method,
-        body: new FormData(form)
-    })
-    .then(response => {
-        if (response.ok) {
-            // 3. Muestra mensaje de éxito y limpia
-            alert("¡Gracias! Tu reseña ha sido enviada con éxito.");
-            document.getElementById('reseñaCliente').value = ''; // Limpiar el campo
-            ocultarReseñaForm();
-        } else {
-            alert("Hubo un error al enviar la reseña. Inténtalo de nuevo.");
-        }
-    })
-    .catch(error => {
-        alert("Hubo un error de red al enviar la reseña: " + error);
-    });
+    if (reseña.length < 5) { // Añadida una validación de longitud mínima
+        mostrarAlerta("La reseña debe tener al menos 5 caracteres.", true);
+        return;
+    }
 
-    return false; // Evita cualquier otra acción por defecto
+    if (typeof ultimoUsuario === 'undefined' || ultimoUsuario === null || !ultimoUsuario.nombre) { 
+        mostrarAlerta("Error: Usuario no registrado. Vuelve a iniciar sesión.", true); 
+        return; 
+    }
+    
+    // 1. Limpia y asigna la reseña al objeto de sesión activo
+    let reseñaLimpia = reseña.replace(/,/g, ";").replace(/\n/g, " ");
+    ultimoUsuario.reseña = reseñaLimpia;
+    
+    // 2. Encuentra y actualiza el registro en el array persistente (localStorage)
+    const index = registrosUsuarios.findIndex(r => r.nombre === ultimoUsuario.nombre && r.telefono === ultimoUsuario.telefono);
+    
+    if (index !== -1) {
+        registrosUsuarios[index].reseña = reseñaLimpia;
+        // 3. Guarda el array actualizado en localStorage
+        localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
+    } else {
+        mostrarAlerta("Error al guardar: Registro de usuario no encontrado en la lista global.", true);
+        return;
+    }
+
+    // 4. Limpia la interfaz y notifica al usuario
+    document.getElementById('reseñaCliente').value = ''; // Limpia el textarea
+    ocultarReseñaForm();
+    mostrarAlerta("✅ ¡Reseña enviada y guardada localmente! Gracias por tus comentarios."); 
 }
-    </script>
 
+    // Función para exportar los datos a CSV
+    function descargarCSV() {
+        const data = JSON.parse(localStorage.getItem('registrosUsuarios')) || [];
+        if (data.length === 0) {
+            mostrarAlerta("No hay registros de usuarios para exportar.", true);
+            return;
+        }
+
+        // Define headers
+        const headers = ["Nombre", "Teléfono", "Reseña"];
+        
+        // Map data to rows, handling potential null/undefined values
+        const rows = data.map(item => [
+            item.nombre || '',
+            item.telefono || '',
+            // Envuelve la reseña entre comillas y escapa las comillas internas (para manejar comas y saltos de línea)
+            `"${(item.reseña || '').replace(/"/g, '""')}"` 
+        ]);
+
+        // Combine headers and rows
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(e => e.join(","))
+        ].join("\n");
+
+        // Crea un objeto Blob y un enlace de descarga
+        const blob = new Blob(["\ufeff", csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'registros_usuarios_uis.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        mostrarAlerta("✅ Datos de usuarios exportados correctamente en CSV.");
+    }
+    </script>
+    
 </body>
 </html>
