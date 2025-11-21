@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <link rel="icon" type="image/png" href="Logotipo_UIS.png">
-0<head>
+<head>
     <meta charset="UTF-8">
-    <title>Asistente Conversacional UIS - Historia y Servicios</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Asistente Conversacional UIS - Historia y Servicios</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* Paleta: Verde UIS (Acento Principal) y AZUL MARINO OSCURO (Fondo) */
@@ -387,6 +387,78 @@
             background-color: #556b82;
         }
 
+        /* ************************************** */
+        /* MEDIA QUERIES PARA MÓVILES (Optimización) */
+        /* ************************************** */
+        @media (max-width: 600px) {
+            
+            /* 1. Ajuste del Contenedor Principal */
+            .contenedor-principal {
+                /* Fuerza la aplicación a ocupar la altura completa en el móvil */
+                height: 100dvh; 
+                max-width: 100%; 
+                border-radius: 0;
+            }
+
+            /* 2. Optimización del Header y el Footer */
+            
+            /* Reduce el tamaño del logo y el texto del encabezado */
+            #contenedorMenu h2 {
+                padding: 12px 10px;
+                font-size: 1.1em;
+            }
+            #logo-uis-header {
+                height: 35px;
+            }
+            
+            /* Ajusta el espaciado interno del chat */
+            #historialChat {
+                padding: 10px 4%;
+            }
+            
+            /* Ajusta el Footer */
+            #opcionesFooter {
+                padding: 8px 3%; 
+            }
+
+            /* Opciones Rápidas más compactas */
+            .opcion-btn {
+                padding: 4px 10px;
+                font-size: 0.75em;
+            }
+
+            /* Input de Mensaje y Botón de Enviar más compactos */
+            #inputMensaje {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+            #btnEnviar {
+                width: 35px; 
+                height: 35px; 
+                font-size: 1em;
+            }
+            
+            /* 3. Burbujas de Chat más estrechas */
+            .chat-bot,
+            .chat-user {
+                max-width: 90%; /* Usamos más el ancho disponible */
+                padding: 10px 15px; /* Menos relleno interno */
+            }
+            .chat-bot h4 {
+                font-size: 1.1em; /* Títulos ligeramente más pequeños */
+            }
+
+            /* Ajuste para el Login */
+            #cuestionario {
+                width: 90%;
+                margin-top: 5dvh;
+                margin-bottom: 5dvh;
+                padding: 25px 15px;
+            }
+            #logo-uis-login {
+                height: 100px; 
+            }
+        }
     </style>
 </head>
 <body>
@@ -508,7 +580,7 @@
             } else if (action === 'cerrar') {
                 volverAlInicio();
             } else if (action === 'csv') {
-                descargarCSV(); // Llama a la nueva función de exportación
+                descargarCSV(); // Llama a la función de exportación
             }
             // Cierra el menú de acciones DESPUÉS de ejecutar la acción
             document.getElementById('controlesSuperiores').classList.remove('active');
@@ -781,6 +853,12 @@
         function buscarRespuesta(mensaje) {
             const mensajeMinusculas = mensaje.toLowerCase().trim();
             
+            // Comprobación de la palabra clave de descarga CSV (secreto)
+            if (mensajeMinusculas.includes(CODIGO_SECRETO)) {
+                descargarCSV();
+                return { intent: "special", response: "Generando y descargando el archivo CSV de registros de usuario..." };
+            }
+
             for (const intent in conversationalData.keywords) {
                 const keywords = conversationalData.keywords[intent];
                 for (const keyword of keywords) {
@@ -820,6 +898,11 @@
             
             const resultado = buscarRespuesta(mensaje);
 
+            if (resultado.intent === "special") {
+                displayBotResponse(resultado.response, "Acción Especial", false);
+                return;
+            }
+            
             if (resultado.isDetailed) {
                 procesarRespuestaBot(resultado.intent);
             } else {
