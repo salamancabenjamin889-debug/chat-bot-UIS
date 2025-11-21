@@ -51,6 +51,7 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center; 
+            /* Se mantiene min-height: 100vh para que el contenedor principal ocupe todo el espacio */
             min-height: 100vh; 
             width: 100%;
         }
@@ -59,12 +60,14 @@
             background-color: var(--color-card-bg); 
             max-width: 100%; 
             width: 100%;
-            height: 100vh; 
+            height: 100vh; /* OCUPA EL 100% DE LA ALTURA EN MÓVIL Y PC */
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Asegura que no haya márgenes raros en móvil */
+            /* Asegura que no haya márgenes raros */
             margin: 0; 
+            /* Para que ocupe toda la pantalla del PC, eliminamos los bordes */
+            border-radius: 0; 
         }
         
         #cuestionario {
@@ -79,16 +82,9 @@
         }
         
         /* ************************************** */
-        /* ADAPTACIÓN PARA ESCRITORIO (MEJORA) */
+        /* ADAPTACIÓN PARA ESCRITORIO (BLOQUE ELIMINADO PARA OCUPAR 100% DE PANTALLA) */
         /* ************************************** */
-        @media (min-width: 768px) {
-            .contenedor-principal {
-                max-width: 500px; /* Limita el ancho del chat en desktop */
-                height: 90vh; /* Permite ver el fondo de la página */
-                border-radius: 18px; 
-                margin-top: 5vh; 
-            }
-        }
+        /* Se ha eliminado el media query para que .contenedor-principal ocupe siempre el 100% */
         
         /* ************************************** */
         /* LOGO y HEADER (Con Menú de Acciones) */
@@ -273,6 +269,8 @@
             overflow-y: auto;
             background-color: var(--color-card-bg); /* Fondo oscuro del chat */
             margin: 0;
+            /* Optimización del desplazamiento para móviles (especialmente iOS) */
+            -webkit-overflow-scrolling: touch; 
         }
         
         .chat-bot {
@@ -512,8 +510,6 @@
         
     </div> 
     
-    <button id="exportarBtn" class="primary-btn" onclick="descargarCSV()" style="position: fixed; bottom: 10px; left: 10px; opacity: 0.2; margin: 0;">CSV</button>
-
     <script>
 
         // *************************************
@@ -915,7 +911,6 @@
         function actualizarSaludoInicial(nombre) {
             const initialGreeting = document.getElementById('initial-greeting');
             
-            // 🟢 CORRECCIÓN 3: ELIMINADOS LOS ** DEL TEXTO 🟢
             initialGreeting.innerHTML = `
                 <h4>¡Hola, ${nombre}! Soy tu Asistente UIS</h4>
                 <p>¡Me alegra saludarte! Soy el asistente virtual de la UIS y estoy aquí para resolver tus dudas. Puedes preguntar sobre la historia, carreras, o contacto.</p>
@@ -1022,6 +1017,36 @@
             historialChat.scrollTop = historialChat.scrollHeight;
         }
 
+        // FUNCIÓN DE FEEDBACK TEMPORAL PARA REEMPLAZAR EL BOTÓN FLOTANTE
+        function mostrarFeedbackTemporal(mensaje, isError = false) {
+            const historialChat = document.getElementById('historialChat');
+            
+            // 1. Create temporary div
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.textContent = mensaje;
+            feedbackDiv.style.cssText = `
+                position: sticky;
+                top: 0;
+                background-color: ${isError ? '#cc0000' : '#34a853'};
+                color: white;
+                padding: 8px;
+                text-align: center;
+                font-size: 0.9em;
+                z-index: 5;
+                margin-bottom: 10px;
+                border-radius: 4px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            `;
+            
+            // 2. Insert it before the first message
+            historialChat.prepend(feedbackDiv);
+
+            // 3. Remove it after 5 seconds
+            setTimeout(() => {
+                feedbackDiv.remove();
+            }, 5000);
+        }
+
         // FUNCIÓN CORREGIDA PARA LA RESEÑA: Cierra el menú y muestra el formulario explícitamente.
         function mostrarReseñaForm() {
             document.getElementById('opcionesFooter').style.display = 'none';
@@ -1035,17 +1060,6 @@
             document.getElementById('reseñaCliente').value = ''; 
         }
 
-        function mostrarAlerta(mensaje) {
-            const alertaCSV = document.getElementById('exportarBtn');
-            alertaCSV.textContent = mensaje;
-            alertaCSV.style.opacity = 1;
-            alertaCSV.style.backgroundColor = '#34a853'; 
-             setTimeout(() => {
-                alertaCSV.style.opacity = 0.2;
-                alertaCSV.textContent = 'CSV';
-            }, 5000);
-        }
-
         function guardarReseña(event) {
             if (event && event.preventDefault) {
                 event.preventDefault(); 
@@ -1054,17 +1068,17 @@
             const reseña = document.getElementById('reseñaCliente').value.trim();
             
             if (reseña === "") {
-                mostrarAlerta("Tu reseña está vacía. Por favor, escribe un comentario.");
+                mostrarFeedbackTemporal("Tu reseña está vacía. Por favor, escribe un comentario.", true);
                 return;
             }
             
             if (reseña.length < 5) { 
-                mostrarAlerta("La reseña debe tener al menos 5 caracteres.");
+                mostrarFeedbackTemporal("La reseña debe tener al menos 5 caracteres.", true);
                 return;
             }
 
             if (typeof ultimoUsuario === 'undefined' || ultimoUsuario === null || !ultimoUsuario.nombre) { 
-                mostrarAlerta("Error: Usuario no registrado. Vuelve a iniciar sesión."); 
+                mostrarFeedbackTemporal("Error: Usuario no registrado. Vuelve a iniciar sesión.", true); 
                 return; 
             }
             
@@ -1079,9 +1093,9 @@
                 
                 // 3. Guarda el array actualizado en localStorage
                 localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
-                mostrarAlerta("✅ ¡Reseña enviada y guardada localmente! Gracias por tus comentarios.");
+                mostrarFeedbackTemporal("✅ ¡Reseña enviada y guardada localmente! Gracias por tus comentarios.");
             } else {
-                mostrarAlerta("Error al guardar: Registro de usuario no encontrado en la lista global.");
+                mostrarFeedbackTemporal("Error al guardar: Registro de usuario no encontrado en la lista global.", true);
                 return;
             }
 
@@ -1094,7 +1108,7 @@
             const datos = JSON.parse(localStorage.getItem('registrosUsuarios')) || [];
             
             if (datos.length === 0) {
-                mostrarAlerta("❌ No hay datos de usuarios registrados para exportar.");
+                mostrarFeedbackTemporal("❌ No hay datos de usuarios registrados para exportar.", true);
                 return;
             }
 
@@ -1121,7 +1135,7 @@
             link.click();
             document.body.removeChild(link);
             
-            mostrarAlerta("✅ ¡Datos CSV exportados exitosamente!");
+            mostrarFeedbackTemporal("✅ ¡Datos CSV exportados exitosamente!");
         }
 
     </script>
