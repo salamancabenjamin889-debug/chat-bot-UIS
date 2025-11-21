@@ -1,9 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 <link rel="icon" type="image/png" href="Logotipo_UIS.png">
-0<head>
+<head>
     <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Asistente Conversacional UIS - Historia y Servicios</title>
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-V5Q6PTZZHF"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-V5Q6PTZZHF');
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* Paleta: Verde UIS (Acento Principal) y AZUL MARINO OSCURO (Fondo) */
@@ -51,6 +63,8 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            /* Asegura que no haya márgenes raros en móvil */
+            margin: 0; 
         }
         
         #cuestionario {
@@ -62,6 +76,18 @@
             background-color: #1a2a3a; /* Un tono ligeramente menos oscuro para el login */
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             margin: auto; 
+        }
+        
+        /* ************************************** */
+        /* ADAPTACIÓN PARA ESCRITORIO (MEJORA) */
+        /* ************************************** */
+        @media (min-width: 768px) {
+            .contenedor-principal {
+                max-width: 500px; /* Limita el ancho del chat en desktop */
+                height: 90vh; /* Permite ver el fondo de la página */
+                border-radius: 18px; 
+                margin-top: 5vh; 
+            }
         }
         
         /* ************************************** */
@@ -159,6 +185,11 @@
             color: #ff6666; /* Rojo claro para cerrar sesión */
         }
         
+        /* Nuevo botón de exportar CSV en el menú */
+        #controlesSuperiores .btn-accion-secundaria.exportar-csv {
+            color: #ffe699; /* Amarillo claro para exportar */
+        }
+
         /* Input de Texto y Botón Primario */
         .input-registro {
             width: 90%; 
@@ -437,8 +468,8 @@
                     </button>
                     
                     <div id="controlesSuperiores">
-                        <button type="button" class="btn-accion-secundaria" onclick="mostrarReseñaForm(); toggleAccionesMenu()">⭐ Dejar Reseña</button>
-                        <button type="button" class="btn-accion-secundaria" onclick="descargarCSV(); toggleAccionesMenu()">💾 Exportar CSV</button>
+                        <button type="button" class="btn-accion-secundaria" onclick="mostrarReseñaForm()">⭐ Dejar Reseña</button>
+                        <button type="button" class="btn-accion-secundaria exportar-csv" onclick="descargarCSV(); toggleAccionesMenu()">💾 Exportar CSV</button>
                         <button type="button" class="btn-accion-secundaria cerrar-sesion" onclick="volverAlInicio(); toggleAccionesMenu()">🚪 Cerrar Sesión</button>
                     </div>
                 </div>
@@ -481,6 +512,8 @@
         
     </div> 
     
+    <button id="exportarBtn" class="primary-btn" onclick="descargarCSV()" style="position: fixed; bottom: 10px; left: 10px; opacity: 0.2; margin: 0;">CSV</button>
+
     <script>
 
         // *************************************
@@ -882,9 +915,10 @@
         function actualizarSaludoInicial(nombre) {
             const initialGreeting = document.getElementById('initial-greeting');
             
+            // 🟢 CORRECCIÓN 3: ELIMINADOS LOS ** DEL TEXTO 🟢
             initialGreeting.innerHTML = `
                 <h4>¡Hola, ${nombre}! Soy tu Asistente UIS</h4>
-                <p>¡Me alegra saludarte! Soy el asistente virtual de la UIS y estoy aquí para resolver tus dudas. Puedes preguntar sobre la **historia**, **carreras**, o **contacto**.</p>
+                <p>¡Me alegra saludarte! Soy el asistente virtual de la UIS y estoy aquí para resolver tus dudas. Puedes preguntar sobre la historia, carreras, o contacto.</p>
             `;
         }
 
@@ -914,10 +948,20 @@
                 telefono: telefono, 
                 reseña: ""
             };
-
-            registrosUsuarios.push(nuevoRegistro);
-            localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
             
+            // Comprobar si el usuario ya existe para evitar duplicados en el registro principal
+            const exists = registrosUsuarios.some(r => r.nombre === nombre && r.telefono === telefono);
+
+            if (!exists) {
+                registrosUsuarios.push(nuevoRegistro);
+                localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
+            } else {
+                // Si ya existe, solo necesitamos actualizar la variable de sesión (últimoUsuario)
+                const existingUser = registrosUsuarios.find(r => r.nombre === nombre && r.telefono === telefono);
+                ultimoUsuario = existingUser;
+            }
+            
+            // Establecer el usuario actual para la sesión
             ultimoUsuario = nuevoRegistro; 
             
             document.getElementById('cuestionario').style.display = 'none';
@@ -978,9 +1022,11 @@
             historialChat.scrollTop = historialChat.scrollHeight;
         }
 
+        // FUNCIÓN CORREGIDA PARA LA RESEÑA: Cierra el menú y muestra el formulario explícitamente.
         function mostrarReseñaForm() {
             document.getElementById('opcionesFooter').style.display = 'none';
             document.getElementById('contenedorReseña').style.display = 'block';
+            document.getElementById('controlesSuperiores').classList.remove('active'); // Asegura que el menú se cierre
         }
         
         function ocultarReseñaForm() {
@@ -990,120 +1036,94 @@
         }
 
         function mostrarAlerta(mensaje) {
-            // Reutilizamos el botón de enviar para mostrar alertas temporales en el footer
-            const alertaBtn = document.getElementById('btnEnviar');
-            const originalIcon = alertaBtn.innerHTML;
-            const originalBg = alertaBtn.style.backgroundColor;
-
-            alertaBtn.innerHTML = mensaje; // Muestra el mensaje en el botón de enviar temporalmente
-            alertaBtn.style.width = 'auto';
-            alertaBtn.style.height = 'auto';
-            alertaBtn.style.borderRadius = '8px';
-            alertaBtn.style.backgroundColor = '#4a1e28'; // Un color de alerta diferente
-
-            setTimeout(() => {
-                alertaBtn.innerHTML = originalIcon;
-                alertaBtn.style.width = '40px';
-                alertaBtn.style.height = '40px';
-                alertaBtn.style.borderRadius = '50%';
-                alertaBtn.style.backgroundColor = originalBg; 
+            const alertaCSV = document.getElementById('exportarBtn');
+            alertaCSV.textContent = mensaje;
+            alertaCSV.style.opacity = 1;
+            alertaCSV.style.backgroundColor = '#34a853'; 
+             setTimeout(() => {
+                alertaCSV.style.opacity = 0.2;
+                alertaCSV.textContent = 'CSV';
             }, 5000);
         }
 
-    function guardarReseña(event) {
-    // 🛑 IMPORTANTE: Evita la recarga de la página si es llamada desde un formulario
-    if (event && event.preventDefault) {
-        event.preventDefault(); 
-    }
+        function guardarReseña(event) {
+            if (event && event.preventDefault) {
+                event.preventDefault(); 
+            }
 
-    const reseña = document.getElementById('reseñaCliente').value.trim();
-    
-    // Validaciones
-    if (reseña === "") {
-        mostrarAlerta("Tu reseña está vacía. Por favor, escribe un comentario.");
-        return;
-    }
-    
-    if (reseña.length < 5) { // Añadida una validación de longitud mínima
-        mostrarAlerta("La reseña debe tener al menos 5 caracteres.");
-        return;
-    }
+            const reseña = document.getElementById('reseñaCliente').value.trim();
+            
+            if (reseña === "") {
+                mostrarAlerta("Tu reseña está vacía. Por favor, escribe un comentario.");
+                return;
+            }
+            
+            if (reseña.length < 5) { 
+                mostrarAlerta("La reseña debe tener al menos 5 caracteres.");
+                return;
+            }
 
-    if (typeof ultimoUsuario === 'undefined' || ultimoUsuario === null || !ultimoUsuario.nombre) { 
-        mostrarAlerta("Error: Usuario no registrado. Vuelve a iniciar sesión."); 
-        return; 
-    }
-    
-    // 1. Limpia y asigna la reseña al objeto de sesión activo
-    // Al usar CSV, es buena práctica limpiar caracteres problemáticos
-    let reseñaLimpia = reseña.replace(/,/g, ";").replace(/\n/g, " ");
-    ultimoUsuario.reseña = reseñaLimpia;
-    
-    // 2. Encuentra y actualiza el registro en el array persistente (localStorage)
-    // Se usa el nombre y el teléfono para encontrar el registro
-    const index = registrosUsuarios.findIndex(r => r.nombre === ultimoUsuario.nombre && r.telefono === ultimoUsuario.telefono);
-    
-    if (index !== -1) {
-        registrosUsuarios[index].reseña = reseñaLimpia;
-        // 3. Guarda el array actualizado en localStorage
-        localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
-    } else {
-        // En un escenario real, si no lo encuentra, podría ser un usuario nuevo 
-        // o un error de lógica. Asumimos que se crea en iniciarMenu().
-        mostrarAlerta("Error al guardar: Registro de usuario no encontrado en la lista global.");
-        return;
-    }
+            if (typeof ultimoUsuario === 'undefined' || ultimoUsuario === null || !ultimoUsuario.nombre) { 
+                mostrarAlerta("Error: Usuario no registrado. Vuelve a iniciar sesión."); 
+                return; 
+            }
+            
+            let reseñaLimpia = reseña.replace(/,/g, ";").replace(/\n/g, " ");
+            
+            // 2. Encuentra y actualiza el registro en el array persistente (localStorage)
+            const index = registrosUsuarios.findIndex(r => r.nombre === ultimoUsuario.nombre && r.telefono === ultimoUsuario.telefono);
+            
+            if (index !== -1) {
+                registrosUsuarios[index].reseña = reseñaLimpia;
+                ultimoUsuario.reseña = reseñaLimpia; // Actualiza también el usuario activo
+                
+                // 3. Guarda el array actualizado en localStorage
+                localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
+                mostrarAlerta("✅ ¡Reseña enviada y guardada localmente! Gracias por tus comentarios.");
+            } else {
+                mostrarAlerta("Error al guardar: Registro de usuario no encontrado en la lista global.");
+                return;
+            }
 
-    // 4. Limpia la interfaz y notifica al usuario
-    document.getElementById('reseñaCliente').value = ''; // Limpia el textarea
-    ocultarReseñaForm();
-    mostrarAlerta("✅ ¡Reseña enviada y guardada localmente! Gracias por tus comentarios."); 
-    }
-
-    // *************************************
-    // ********** NUEVA FUNCIÓN PARA EXPORTAR CSV ************
-    // *************************************
-    
-    function descargarCSV() {
-        // La variable global registrosUsuarios ya está cargada desde localStorage
-        const data = JSON.parse(localStorage.getItem('registrosUsuarios')) || [];
-        
-        if (data.length === 0) {
-            mostrarAlerta("No hay registros de usuarios para exportar.");
-            return;
+            // 4. Limpia la interfaz
+            document.getElementById('reseñaCliente').value = ''; 
+            ocultarReseñaForm();
         }
 
-        // Define los encabezados del CSV
-        const headers = ["Nombre", "Teléfono", "Reseña"];
-        
-        // Mapea los datos a filas
-        const rows = data.map(item => [
-            item.nombre || '',
-            item.telefono || '',
-            // Se encierra la reseña entre comillas y se escapan las comillas internas (para manejar comas y saltos de línea)
-            `"${(item.reseña || '').replace(/"/g, '""')}"` 
-        ]);
+        function descargarCSV() {
+            const datos = JSON.parse(localStorage.getItem('registrosUsuarios')) || [];
+            
+            if (datos.length === 0) {
+                mostrarAlerta("❌ No hay datos de usuarios registrados para exportar.");
+                return;
+            }
 
-        // Combina encabezados y filas
-        // Se añade el BOM (\ufeff) para asegurar que se abra bien en Excel con UTF-8
-        const csvContent = [
-            headers.join(","),
-            ...rows.map(e => e.join(","))
-        ].join("\n");
+            // Encabezados del CSV
+            let csvContent = "Nombre,Teléfono,Reseña\n";
 
-        // Crea un objeto Blob (archivo) y un enlace de descarga
-        const blob = new Blob(["\ufeff", csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'registros_usuarios_uis.csv');
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        mostrarAlerta("✅ Datos de usuarios exportados correctamente en CSV.");
-    }
+            // Datos
+            datos.forEach(registro => {
+                const nombre = registro.nombre ? `"${registro.nombre.replace(/"/g, '""')}"` : "";
+                const telefono = registro.telefono ? `"${registro.telefono.replace(/"/g, '""')}"` : "";
+                const reseña = registro.reseña ? `"${registro.reseña.replace(/"/g, '""')}"` : "";
+                
+                csvContent += `${nombre},${telefono},${reseña}\n`;
+            });
+
+            // Creación del Blob y descarga
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'registros_usuarios_uis.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            mostrarAlerta("✅ ¡Datos CSV exportados exitosamente!");
+        }
+
     </script>
     
 </body>
